@@ -533,3 +533,38 @@ Not sure how to implement some of your ideas? We'll discuss together afterward, 
 
 
 ## Exercise 2 ideas
+
+### A better colour scale
+
+As before, you can use `scale_fill_brewer` to choose a colour palette from <colorbrewer2.org>:
+
+```{r}
+#| label: ex2-colour-brewer
+
+ggplot() +
+  geom_stars(data = temp_raster_single) +
+  scale_fill_brewer(palette = "YlOrRd") +
+  labs(
+    x = NULL, y = NULL,
+    title = "Temperatures at 4 PM on Jan 17, 2013",
+    fill = "Temperature (°C)")
+```
+
+One thing about continuous colour scales on maps is it can sometimes be hard to distinguish many different shades of colour on a map.
+
+You could choose to use a "binned" colour scale instead, so the colour steps between a few different shades instead.
+
+You can use `scale_fill_fermenter` instead to make the colour scale binned:
+
+```{r}
+#| label: ex2-colour-fermenter
+
+ggplot() +
+  geom_stars(data = temp_raster_single) +
+  scale_fill_fermenter(palette = "YlOrRd", n.breaks = 7) +
+  labs(
+    x = NULL, y = NULL,
+    title = "Temperatures at 4 PM on Jan 17, 2013",
+    fill = "Temperature (°C)")
+```
+
