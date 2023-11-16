@@ -701,4 +701,4 @@ ggplot() +
     fill = "Temperature (°C)")
 ```
 
-### Adding choropleth labels
+
