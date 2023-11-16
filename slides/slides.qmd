@@ -25,18 +25,28 @@ Data and Digital Storytelling Lead, 360info
 
 ## Getting started {.center}
 
+::::{.columns}
+:::{.column width="40%"}
+![](images/qrcode-codespace.png)
+:::
+:::{.column width="60%"}
 
-:::{.callout-tip style="margin-block: 100px"}
-## Today's workshop uses a cloud environment. To access it, you need to:
 
+##### Today's workshop uses a cloud environment. To access it, you need to:
+
+:::{style="font-size: 70%"}
 1. Get an account for free at **[github.com](https://github.com)**
 
 2. Go to **<https://codespaces.new/jimjam-slam/wrc-workshop-dataviz?quickstart=1>**
+
+  - If you close the browser window, use the link to resume it (or just make another one if you're happy to start again).
+
+  - It takes a few minutes to start up, so feel free to launch it now!
+
 :::
+:::
+::::
 
-- If you close the browser window, use the link to resume it (or just make another one if you're happy to start again).
-
-- It takes a few minutes to start up, so feel free to launch it now!
 
 # Hi! {.text-wash-black background="linear-gradient(45deg, #00aadd, #66dd00)"}
 
@@ -78,140 +88,10 @@ Now I'm a data journalist with
 
 :::::
 
-## Poll {.text-lime-cyan}
+## Poll 🙋🏻 {.text-lime-cyan}
 
-::: {.notes}
-Would love to find out more about all of you and what you're learning
-
-No personal info in this poll, just 2 Qs!
-
-1. What do you want to learn today?
-2. How confident do you feel using R and `{ggplot2}`?
-
-Take a moment to fill it in on your phone
-:::
-
-:::: {.columns}
-:::{.column width="40%"}
-![](images/qr-code-survey.svg){fig-alt="Scan this QR code to fill in the survey."}
-:::
-
-::: {.column width="60%" .center}
-<br>Take the survey at
-
-**<https://forms.gle/w9LLeWsWVZdnniYh8>**
-:::
-::::
-
-## What are you hoping to learn today? {.text-lime-cyan style="text-align: center;"}
-${respondentCount} respondents
-
-```{ojs}
-
-import { liveGoogleSheet } from "@jimjamslam/live-google-sheet";
-import { aq, op } from "@uwdata/arquero";
-
-surveyResults = liveGoogleSheet(
-  "https://docs.google.com/spreadsheets/d/e/" +
-  "2PACX-1vT46HBtu5Mj-qjujsI9uENS4iomEN0XcMpNYiKkOngnSR0xj1gwfc6Un_82CrgvSG5NVbN0x1ES39sC/" +
-  "pub?gid=13628160&single=true&output=csv",
-  15000, 1, 3);
-
-surveyResultsDf = aq.from(surveyResults)
-
-respondentCount = surveyResultsDf._names.length > 0 ?
-  surveyResultsDf
-  .filter(d => d.Timestamp != "")
-  .numRows() : 0;
-```
-
-```{ojs}
-// get the counts of people using and interested in tools
-hopingLearn = respondentCount > 0 ?
-  surveyResultsDf
-    .filter(d => d.Timestamp != "")
-    .derive({ answer: d => op.split(
-      d["What are you hoping to learn today?"], ", ") })
-    .select("answer")
-    .unroll("answer")
-    .groupby("answer")
-    .count() : []
-```
-
-```{ojs}
-plotLearn = respondentCount > 0 ?
-  Plot.plot({
-    marks: [
-      Plot.barX(hopingLearn, { y: "answer", x: "count", fill: "answer" }),
-      Plot.ruleX([respondentCount], { stroke: "#ffffff99" }),
-      Plot.axisY({
-        label: null,
-        lineWidth: 15,
-        marginLeft: 350
-      }),
-    ],
-    x : { label: "" },
-    y : { label: "", tickSize: 0 },
-    width: 1150,
-    height: 500,
-    style: {
-      fontSize: 24,
-    }
-  }) : md`Waiting for responses`;
-```
-
-```{ojs}
-//| output: false
-plotLearn.setAttribute("font-size", 24);
-```
-
-<!-- keep a qr code up in the top-right corner -->
-![](images/qr-code-survey.svg){style="position:fixed;bottom:0;right:0;width:140px;height:140px" fig-alt="A picture of a QR code to the survey."}
-
-## How comfortable do you feel with R and ggplot2? {.text-lime-cyan style="text-align: center;"}
-${respondentCount} respondents
-
-```{ojs}
-comfortLevels = respondentCount > 0 ?
-  surveyResultsDf
-    .filter(d => d.Timestamp != "")
-    .derive({ answer: d => op.split(
-      d["How comfortable do you feel with R and ggplot2?"], ", ") })
-    .select("answer")
-    .unroll("answer")
-    .groupby("answer")
-    .count() : []
-```
-
-```{ojs}
-plotComfort = respondentCount > 0 ?
-  Plot.plot({
-    marks: [
-      Plot.barX(comfortLevels, { y: "answer", x: "count", fill: "answer" }),
-      Plot.ruleX([respondentCount], { stroke: "#ffffff99" }),
-      Plot.axisY({
-        label: null,
-        lineWidth: 15,
-        marginLeft: 350
-      }),
-    ],
-    x : { label: "" },
-    y : { label: "", tickSize: 0 },
-    width: 1150,
-    height: 500,
-    style: {
-      fontSize: 24,
-    }
-  }) : md`Waiting for responses`;
-```
-
-```{ojs}
-//| output: false
-plotComfort.setAttribute("font-size", 24);
-```
-
-<!-- keep a qr code up in the top-right corner -->
-![](images/qr-code-survey.svg){style="position:fixed;bottom:0;right:0;width:140px;height:140px" fig-alt="A picture of a QR code to the survey."}
+- What are you hoping to learn today?
+- How comfortable do you feel with R and ggplot2?
 
 # [Improving]{.hl .hl-gold} your plots {.text-wash-black background="linear-gradient(45deg, #f37335, #fdc830)"}
 
@@ -251,24 +131,98 @@ When all of the elements on your plot look the same, it's really hard for people
 [There are lots of ways to do this:]{style="color: #bbbbbb"}
 :::
 
-::::{.columns style="font-size: 75%"}
-:::{.column width="30%"}
-**bolding text**<br>
-[**making it bigger**]{style="font-size:125%"}<br>
-:::
-:::{.column width="30%"}
-[**using striking colours...**]{style="color: #dd0033"}<br>
-[... or softer colours]{style="color: #bbbbbb"}
-:::
+## Text size
+<br><br>
+[People read large things first...]{style="font-size: 125%"}
 
-:::{.column width="30%"}
-**taking advantage of natural reading direction** 
+[... and smaller things later.]{style="font-size: 75%"}
+<br><br><br><br>
+[(There's a reason we call it "fine print".)]{style="font-size: 50%"}
+
+## Font weight
+
+(more or less bold)
+
+::::{.columns}
+:::{.column width="50%"}
+
+[What did you read first here?]{style="font-size: 75%"}
+:::
+:::{.column width="50%"}
+
+[Text weight: 300]{style="font-weight: 300"}
+
+[Text weight: 400]{style="font-weight: 400"}
+
+[Text weight: 500]{style="font-weight: 500"}
+
+[Text weight: 600]{style="font-weight: 600"}
+
+[Text weight: 700]{style="font-weight: 700"}
+
+[Text weight: 800]{style="font-weight: 800"}
+
+[Text weight: 900]{style="font-weight: 900"}
 :::
 ::::
 
-:::{style="font-size: 75%; margin-top: 50px"}
-[can all help to establish visual hierarchy.]{style="color: #bbbbbb"}
+## Colour
+
+<br>
+
+::::{.columns}
+:::{.column width="50%"}
+
+[What did you read first here?]{style="font-size: 75%"}
 :::
+:::{.column width="50%"}
+
+[Text colour: 80% grey]{style="color: #cccccc"}
+
+[Text colour: 67.5% grey]{style="color: #aaaaaa"}
+
+[Text colour: 50% grey]{style="color: #888888"}
+
+[Text colour: Pink-red, and bold]{style="color: #dd0033; font-weight: bold;"}
+
+[Text colour: 25% grey]{style="color: #444444"}
+
+[Text colour: 12.5% grey]{style="color: #222222"}
+
+[Text colour: Black]{style="color: #000000"}
+:::
+::::
+
+## Reading direction
+
+Left-to-right?
+
+Right-to-left?
+
+Top-to-bottom?
+
+This might depend on your audience!
+
+## Combining these elements
+<br><br>
+
+[Visual hierarchy can help]{style="font-size:125%; color: #dd0033; font-weight: bold;"}
+
+And we have many ways to build it
+
+[James made this slide, but that's less important]{style="font-size:75%; color: #bbbbbb"}
+
+## Combining these elements
+
+:::{.callout-tip}
+You can also use these elements against each other to fine-tune your visual hierarchy, but you need to make sure you don't make things too confusing!
+:::
+
+<br>
+
+[Brief and unimportant]{style="font-size:75%; text-transform: uppercase;"}
+
+[Important thing right here!]{style="font-size: 125%; font-weight: bold;"}
 
 ## When to draw things, and when not to {.text-orange-gold .center style="text-align:center"}
 
@@ -301,36 +255,55 @@ De-emphasise less important info or emphasise more important info
 ::::
 :::::
 
-# [[Exercise 1:]{.hl-purple}<br>Improving a plot]{style="color:white"} { background="linear-gradient(45deg, #4a00e0, #ff0099)"}
+# [[Exercise 1:]{.hl-purple}<br>Time series data]{style="color:white"} { background="linear-gradient(45deg, #4a00e0, #ff0099)"}
 
 ## Exercise 1 {.text-indigo-pink .center}
 
 Open the `exercises/exercises.qmd` file
 
-[or click the "Start workshop exercises" button at the bottom]{style="font-size:75%"}
-<br><br>
+<br>
 This notebook compares **peak electricity demand** each day to **maximum temperature** at **3 sites**
 <br><br>
 We'll split into groups and try to make a better plot **for publication**
 <br><br>
 Start by **discussing improvements** you'd make. If you know R, **try making these changes!** If not, I have some suggestions you can copy further down 😉
 
-# [[Exercise 2:]{.hl-red}<br>Changing audience]{style="color:white"} { background="linear-gradient(45deg, #ed213a, #93291e)"}
+# [[Exercise 2:]{.hl-red}<br>maps]{style="color:white"} { background="linear-gradient(45deg, #ed213a, #93291e)"}
 
 ## Exercise 2 {.text-red-brown .center}
 
-Our paper got accepted! Nice!
-<br><br>
-Now a journalist wants to report on it...
-<br><br>
-How would you change this plot for a more general audience?
+Continue down `exercises/exercises.qmd` file to Exercise 2
 
-# Thank you!
-
-Thanks **Mat Lipson** and the [**NEAR program**](https://near.csiro.au/) (BOM + CSIRO) for our example data, and the **ICUC11 committee** for inviting me!
+<br>
+This notebook shows **temperatures across Australia** over the course of two hot days.
 <br><br>
+We also have data on reigons in New South Wales.
+<br><br>
+Think about the kinds of questions you could answer with this data.
+
+Start by **discussing improvements** you'd make. If you know R, **try making these changes!** If not, I have some suggestions you can copy further down 😉
+
+# Thank you for having me!
+
+<br>
+
+Thanks **Mat Lipson** and the [**NEAR program**](https://near.csiro.au/) (BOM + CSIRO) for our time series data, and [**Copernicus**](https://cds.climate.copernicus.eu) and the [**ABS**](https://abs.gov.au) for the map data!
+
+::::{.columns}
+:::{.column width="40%"}
+
 🧵 [**@jimjam.slam**](https://threads.net/@jimjam.slam)
 
 <i class="bi bi-github"></i> [**github.com/360-info**](https://github.com/jimjam-slam)
 
 <i class="bi bi-briefcase-fill"></i> [**360info.org**](https://360info.org)
+
+:::
+:::{.column width="60%"}
+
+:::{.callout-tip}
+(You can keep using today's Codespace at the link below!)
+:::
+
+:::
+::::
