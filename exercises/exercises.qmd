@@ -136,7 +136,7 @@ View(df_long)
 
 Okay, we're ready to visualise the data!
 
-# Plotting
+## Plotting
 
 Here's a base plot to start from. it has all the essential elements:
 
@@ -435,7 +435,6 @@ We're going to need a few extra packages to work with spatial data like this:
 
 library(sf)
 library(stars)
-# library(terra)
 library(exactextractr)
 ```
 
@@ -448,18 +447,17 @@ Let's load up the temperatures first:
 here("data", "spatial", "era5-2013-01-17_18.nc") |>
   read_ncdf() |>
   mutate(t2m = t2m - units::set_units(273.15, K)) ->
-temp_raste_all
+temp_raster_all
 
 # we can see quickly what's in here:
-temp_raste_all
+temp_raster_all
 
 # let's get a single time slice
-temp_raste_all |>
+temp_raster_all |>
   filter(time == ymd_hms("2013-01-17 05:00:00")) ->
 temp_raster_single
 ```
 
-## Plotting a basic map of a raster
 
 Here's as basic a plot as we can do with a raster map:
 
@@ -470,6 +468,45 @@ ggplot() +
   geom_stars(data = temp_raster_single)
 ```
 
+On its own, you can _just_ make out Australia.
+
+Let's add some vector data to give us some context:
+
+```{r}
+#| label: analyse-sa4s
+
+here("data", "spatial", "sa4-nsw-act.gpkg") |>
+  read_sf() ->
+nsw_sa4s
+
+nsw_sa4s
+```
+
+You can see this "shapefile" looks like a data frame, with rows that represent features. In this case, each feature is an individual area with metadata attached, but features could be points (like weather stations), or lines (like rivers or roads).
+
+Let's add these areas to our map:
+
+```{r}
+#| label: map-raster-polys
+
+ggplot() +
+  geom_stars(data = temp_raster_single) +
+  geom_sf(data = nsw_sa4s, fill = NA, colour = "black")
+```
+
+If we're focused on NSW, we should probably zoom in on it:
+
+```{r}
+#| label: map-raster-polys-zoom
+
+ggplot() +
+  geom_stars(data = temp_raster_single) +
+  geom_sf(data = nsw_sa4s, fill = NA, colour = "black") +
+  coord_sf(xlim = c(140, 155), ylim = c(-40, -27))
+```
+
+## Plotting a basic map of a raster
+
 Try modifying it! For example, we could add in some axis labels (and take some away!)
 
 ```{r}
@@ -477,6 +514,8 @@ Try modifying it! For example, we could add in some axis labels (and take some a
 
 ggplot() +
   geom_stars(data = temp_raster_single) +
+  geom_sf(data = nsw_sa4s, fill = NA, colour = "black") +
+  coord_sf(xlim = c(140, 155), ylim = c(-40, -27)) +
   labs(
     x = NULL, y = NULL,
     title = "Temperatures at 4 PM on Jan 17, 2013",
@@ -490,6 +529,8 @@ As before, we can save it to a PNG file (or a PDF, or something else):
 
 my_map <- ggplot() +
   geom_stars(data = temp_raster_single) +
+  geom_sf(data = nsw_sa4s, fill = NA, colour = "black") +
+  coord_sf(xlim = c(140, 155), ylim = c(-40, -27)) +
   labs(
     x = NULL, y = NULL,
     title = "Temperatures at 4 PM on Jan 17, 2013",
@@ -497,6 +538,7 @@ my_map <- ggplot() +
 
 ggsave(my_map, here("plots", "map-example.png"))
 ```
+
 Not sure how to implement some of your ideas? We'll discuss together afterward, but in the mean time, scroll down for some ideas...
 
 
@@ -534,16 +576,69 @@ Not sure how to implement some of your ideas? We'll discuss together afterward, 
 
 ## Exercise 2 ideas
 
-### A better colour scale
+### Move the legend
 
-As before, you can use `scale_fill_brewer` to choose a colour palette from <colorbrewer2.org>:
+As before, we can move the colour bar by supplying `theme` options, as well as a pre-defined theme:
+
+```{r}
+#| label: ex2-legend-position
+
+ggplot() +
+  geom_stars(data = temp_raster_single) +
+  geom_sf(data = nsw_sa4s, fill = NA, colour = "black") +
+  coord_sf(xlim = c(140, 155), ylim = c(-40, -27)) +
+  theme_minimal() +
+  theme(
+    legend.position = "top",
+    legend.direction = "horizontal"
+  )
+```
+
+### Masking the data
+
+All of this data around NSW isn't really of interest to us. Instead of zooming the plot in manually, we could use the polygons as a _mask_, where everything in the raster outside them disappears.
+
+```{r}
+#| label: mask-raster
+
+# before we can crop with the polygons, we need them in the
+# same projection
+nsw_sa4s |>
+  sf::st_transform(st_crs(4326)) ->
+nsw_sa4s_reprojected
+
+# this'll take a few seconds!
+temp_nsw <- temp_raster_single[nsw_sa4s_reprojected]
+```
+
+Now we can plot our new raster:
+
+```{r}
+#| label: ex2-legend-position
+
+ggplot() +
+  geom_stars(data = temp_nsw) +
+  geom_sf(data = nsw_sa4s, fill = NA, colour = "black")
+```
+
+
+### A better colour scale, and hiding missing areas
+
+That grey colour where the data is missing is pretty ugly, but a colour scale can fix that:
+
+As before, you can use `scale_fill_distiller` to choose a colour palette from <colorbrewer2.org>.
+
+Colour scale functions take some useful arguments, like `direction = 1` to reverse them (so that the reed represents hot temperatures), and `na.value`, so that we can set the colour of the missing areas.
 
 ```{r}
 #| label: ex2-colour-brewer
 
 ggplot() +
-  geom_stars(data = temp_raster_single) +
-  scale_fill_brewer(palette = "YlOrRd") +
+  geom_stars(data = temp_nsw) +
+  geom_sf(data = nsw_sa4s, fill = NA, colour = "black") +
+  coord_sf(xlim = c(140, 155), ylim = c(-40, -27)) +
+  scale_fill_distiller(palette = "YlOrRd", direction = 1,
+    na.value = "transparent") +
   labs(
     x = NULL, y = NULL,
     title = "Temperatures at 4 PM on Jan 17, 2013",
@@ -560,11 +655,50 @@ You can use `scale_fill_fermenter` instead to make the colour scale binned:
 #| label: ex2-colour-fermenter
 
 ggplot() +
-  geom_stars(data = temp_raster_single) +
-  scale_fill_fermenter(palette = "YlOrRd", n.breaks = 7) +
+  geom_stars(data = temp_nsw) +
+  geom_sf(data = nsw_sa4s, fill = NA, colour = "black") +
+  coord_sf(xlim = c(140, 155), ylim = c(-40, -27)) +
+  scale_fill_fermenter(palette = "YlOrRd", n.breaks = 7, direction = 1,
+    na.value = "transparent") +
   labs(
     x = NULL, y = NULL,
     title = "Temperatures at 4 PM on Jan 17, 2013",
     fill = "Temperature (°C)")
 ```
 
+## Making a choropleth
+
+We've cropped our raster data to the area of NSW, but temperatures vary quite a bit across the state. In order to compare different areas numerically, we might want to show a statistic for each area, like the average temperature for each one.
+
+Let's calculate an average for each area and plot that. The `{sf}` package can calculate these statistics across areas (called _zonal statistics_), but the `{exactextractr}` package does the job better (and faster!).
+
+```{r}
+#| label: polygon-averages
+
+# we need to use a different format for {exactextractr}
+temp_terra <- terra::rast(temp_raster_single)
+  
+# we also need to remove "empty" areas, which sometimes come with datasets
+nsw_sa4s_reprojected |>
+  filter(!st_is_empty(nsw_sa4s_reprojected)) ->
+nsw_sa4s_nonempty
+
+# now, we can use {exactextractr} to calculate the zonal mean of each sa4
+nsw_sa4s_nonempty |>
+  mutate(avg_temp = exact_extract(temp_terra, nsw_sa4s_nonempty, "mean")) |>
+  select(SA4_NAME21, avg_temp) ->
+nsw_temps
+
+
+ggplot() +
+  aes(fill = avg_temp) +
+  geom_sf(data = nsw_temps, colour = "black") +
+  scale_fill_fermenter(palette = "YlOrRd", n.breaks = 7, direction = 1,
+    na.value = "transparent") +
+  labs(
+    x = NULL, y = NULL,
+    title = "Zonal temperatures at 4 PM on Jan 17, 2013",
+    fill = "Temperature (°C)")
+```
+
+### Adding choropleth labels
