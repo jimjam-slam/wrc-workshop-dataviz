@@ -27,7 +27,7 @@
 		},
 		/* add additional r packages here */
 		"ghcr.io/rocker-org/devcontainer-features/r-packages:1": {
-			"packages": "github::rstudio/renv,tidyverse,httpgd,here,janitor,ggtext,sf,stars,ncmeta,cubelyr,exactextractr,github::mattcowgill/ggannotate"
+			"packages": "github::rstudio/renv,tidyverse,httpgd,here,janitor,ggtext,sf,stars,terra,ncmeta,cubelyr,exactextractr,github::mattcowgill/ggannotate"
 		}
 	},
 
