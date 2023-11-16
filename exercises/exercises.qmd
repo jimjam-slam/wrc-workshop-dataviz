@@ -23,6 +23,10 @@ weather_path <-  here("data", "weather")
 dir.create(plot_path, showWarnings = FALSE)
 ```
 
+# Exercise 1: working with time series data
+
+## Analysis
+
 ```{r}
 #| label: analyse-weather
 
@@ -132,7 +136,7 @@ View(df_long)
 
 Okay, we're ready to visualise the data!
 
-# Exercise 1
+# Plotting
 
 Here's a base plot to start from. it has all the essential elements:
 
@@ -327,8 +331,6 @@ ggplot(df_long) +
     color = NULL)
 ```
 
-## Exercise 2 Ideas
-
 ### Adding a plot title (and subtitle, and caption)
 
 Journals often prefer you to tell a plot's story in the figure caption.
@@ -342,7 +344,7 @@ What should you use for a title? There are a few approaches. It's a good idea to
 A caption can be a great way to acknowledge your data sources, too.
 
 ```{r}
-#| label: ex2-plottitle
+#| label: ex1-plottitle
 
 ggplot(df_long) +
   aes(x = tmax, y = demand, colour = working) +
@@ -371,7 +373,7 @@ There're a few ways to annotate a plot:
 let's try the last option:
 
 ```{r}
-#| label: ex2-annotate
+#| label: ex1-annotate
 
 my_labels <- tribble(
   ~ name,          ~ x,   ~ y, ~ text,
@@ -414,3 +416,120 @@ ggannotate::ggannotate()
 - Instead of a legend, you could directly colour the text in your plot title or text annotation. This is space efficient and takes advantage of viewers seeing the title first!
 
 - This plot has several messages! There's one around weekends vs weekdays, another around temperature, and a third around different types of areas. Could we make this easier for viewers by introducing this complexity over time?
+
+
+# Exercise 2: maps
+
+For our second exercise, we'll look at temperatures across NSW across on a couple of very hot days: Jan 17 and 18, 2013.
+
+The file `data/spatial/era5-2013-01-17_18.nc` contains this temperature data in NetCDF format, courtesy of the [Copernicus Climate Data Service's ERA5 dataset](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels?tab=form).
+
+The file `data/spatial/sa4-nsw-act.gpkg` contains a set of boundaries from the [Australian Bureau of Statistics](https://maps.abs.gov.au/): [Statistical Area Level 4](https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files). I've cut the file down to NSW and ACT only.
+
+## Analysis
+
+We're going to need a few extra packages to work with spatial data like this:
+
+```{r}
+#| label: setup-spatial
+
+library(sf)
+library(stars)
+# library(terra)
+library(exactextractr)
+```
+
+Let's load up the temperatures first:
+
+```{r}
+#| label: analyse-temperatures-spatial
+
+# load the data in and convert from kelvin to deg calsius
+here("data", "spatial", "era5-2013-01-17_18.nc") |>
+  read_ncdf() |>
+  mutate(t2m = t2m - units::set_units(273.15, K)) ->
+temp_raste_all
+
+# we can see quickly what's in here:
+temp_raste_all
+
+# let's get a single time slice
+temp_raste_all |>
+  filter(time == ymd_hms("2013-01-17 05:00:00")) ->
+temp_raster_single
+```
+
+## Plotting a basic map of a raster
+
+Here's as basic a plot as we can do with a raster map:
+
+```{r}
+#| label: plot-raster-base
+
+ggplot() +
+  geom_stars(data = temp_raster_single)
+```
+
+Try modifying it! For example, we could add in some axis labels (and take some away!)
+
+```{r}
+#| label: modified-plot-raster-base
+
+ggplot() +
+  geom_stars(data = temp_raster_single) +
+  labs(
+    x = NULL, y = NULL,
+    title = "Temperatures at 4 PM on Jan 17, 2013",
+    fill = "Temperature (°C)")
+```
+
+As before, we can save it to a PNG file (or a PDF, or something else):
+
+```{r}
+#| label: raster-ggsave-example
+
+my_map <- ggplot() +
+  geom_stars(data = temp_raster_single) +
+  labs(
+    x = NULL, y = NULL,
+    title = "Temperatures at 4 PM on Jan 17, 2013",
+    fill = "Temperature (°C)")
+
+ggsave(my_map, here("plots", "map-example.png"))
+```
+Not sure how to implement some of your ideas? We'll discuss together afterward, but in the mean time, scroll down for some ideas...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(keep scrolling!)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Exercise 2 ideas
